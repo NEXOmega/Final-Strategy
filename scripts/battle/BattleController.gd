@@ -5,12 +5,14 @@ extends Node
 @export var surface_manager: SurfaceManager
 @export var unit_manager: UnitManager
 @export var pathfinding_manager: PathfindingManager
+@export var debug_logs: bool = false
 
 var selected_unit: Unit = null
 var reachable_cells: Array[Vector2i] = []
 
 func _ready() -> void:
-	print("READY BattleController")
+	if debug_logs:
+		print("READY BattleController")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -20,16 +22,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			handle_left_click()
 
 func handle_left_click() -> void:
-	if surface_manager == null:
-		push_error("BattleController: surface_manager n'est pas assigné.")
+	if not _has_required_dependencies():
 		return
 
-	var world_pos: Vector2 = surface_manager.surfaces_root.get_global_mouse_position()
-	var surface := surface_manager.get_surface_under_global_position(world_pos)
-	
+	var surface := _get_surface_under_mouse()
+
 	if surface == null:
-		print("Aucune surface cliquée.")
-		clear_selection()
+		_clear_selection_with_log("Aucune surface cliquée.")
 		return
 
 	var cell := surface.grid_position
@@ -39,12 +38,10 @@ func handle_left_click() -> void:
 		clear_selection()
 		return
 
-	var unit: Unit = null
+	var unit := unit_manager.get_unit_at_cell(cell)
 
-	if unit_manager != null:
-		unit = unit_manager.get_unit_at_cell(cell)
-
-	print("Case cliquée : ", cell, " hauteur=", tile.height, " surface=", tile.surface_type)
+	if debug_logs:
+		print("Case cliquée=", cell, " hauteur=", tile.height, " surface=", tile.surface_type)
 
 	if unit != null:
 		select_unit(unit)
@@ -56,9 +53,30 @@ func handle_left_click() -> void:
 
 	clear_selection()
 
+func _has_required_dependencies() -> bool:
+	if grid_manager == null:
+		push_error("BattleController: grid_manager n'est pas assigné.")
+		return false
+
+	if surface_manager == null:
+		push_error("BattleController: surface_manager n'est pas assigné.")
+		return false
+
+	if unit_manager == null:
+		push_error("BattleController: unit_manager n'est pas assigné.")
+		return false
+
+	return true
+
+func _get_surface_under_mouse() -> TileSurface:
+	var world_pos := surface_manager.surfaces_root.get_global_mouse_position()
+	return surface_manager.get_surface_under_global_position(world_pos)
+
 func select_unit(unit: Unit) -> void:
 	selected_unit = unit
-	print("Unité sélectionnée : ", unit.unit_name)
+
+	if debug_logs:
+		print("Unité sélectionnée=", unit.unit_name)
 
 	if pathfinding_manager == null:
 		push_error("BattleController: pathfinding_manager n'est pas assigné.")
@@ -66,19 +84,13 @@ func select_unit(unit: Unit) -> void:
 
 	reachable_cells = pathfinding_manager.get_reachable_cells(unit)
 
-	print("Cases accessibles : ", reachable_cells.size())
+	if debug_logs:
+		print("Cases accessibles=", reachable_cells.size())
 
-	if surface_manager != null:
-		surface_manager.show_move_cells(reachable_cells)
-	else:
-		push_error("BattleController: surface_manager n'est pas assigné.")
+	surface_manager.show_move_cells(reachable_cells)
 
 func move_selected_unit_to(target_cell: Vector2i) -> void:
 	if selected_unit == null:
-		return
-
-	if unit_manager == null:
-		push_error("BattleController: unit_manager n'est pas assigné.")
 		return
 
 	var from_cell := selected_unit.grid_position
@@ -92,13 +104,11 @@ func move_selected_unit_to(target_cell: Vector2i) -> void:
 	to_tile.occupied_by = selected_unit
 
 	selected_unit.grid_position = target_cell
-	if surface_manager != null:
-		selected_unit.global_position = surface_manager.get_unit_world_position(target_cell)
-	else:
-		selected_unit.global_position = grid_manager.get_world_position_from_cell(target_cell)
+	selected_unit.global_position = surface_manager.get_unit_world_position(target_cell)
 	selected_unit.z_index = unit_manager.get_unit_z_index(target_cell, to_tile.height)
 
-	print("Unité déplacée vers : ", target_cell)
+	if debug_logs:
+		print("Unité déplacée vers=", target_cell)
 
 	clear_selection()
 
@@ -108,3 +118,9 @@ func clear_selection() -> void:
 
 	if surface_manager != null:
 		surface_manager.clear_highlights()
+
+func _clear_selection_with_log(message: String) -> void:
+	if debug_logs:
+		print(message)
+
+	clear_selection()

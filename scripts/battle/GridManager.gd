@@ -1,20 +1,24 @@
 class_name GridManager
 extends Node
 
+const CUSTOM_HEIGHT := "height"
+const CUSTOM_SURFACE_TYPE := "surface_type"
+const CUSTOM_ALIAS_OFFSET_X := "alias_offset_x"
+const CUSTOM_ALIAS_OFFSET_Y := "alias_offset_y"
+
 @export var logic_layer: TileMapLayer
 @export var hide_logic_layer_on_start: bool = true
+@export var debug_logs: bool = false
 
 var tiles: Dictionary = {}
+var cell_aliases: Dictionary = {}
+var canonical_footprints: Dictionary = {}
 
 var min_cell: Vector2i
 var max_cell: Vector2i
 var has_bounds: bool = false
 
-var cell_aliases: Dictionary = {}
-var canonical_footprints: Dictionary = {}
-
 func _ready() -> void:
-	print("READY GridManager")
 	load_grid_from_logic_layer()
 
 	if hide_logic_layer_on_start and logic_layer != null:
@@ -25,10 +29,7 @@ func load_grid_from_logic_layer() -> void:
 		push_error("GridManager: logic_layer n'est pas assigné.")
 		return
 
-	cell_aliases.clear()
-	canonical_footprints.clear()
-	tiles.clear()
-	has_bounds = false
+	_clear_grid()
 
 	var used_cells := logic_layer.get_used_cells()
 
@@ -37,53 +38,58 @@ func load_grid_from_logic_layer() -> void:
 		return
 
 	for cell: Vector2i in used_cells:
-		var tile_height := get_height_from_logic_layer(cell)
-		var surface_type := get_surface_type_from_logic_layer(cell)
+		_register_logic_cell(cell)
 
-		var tile_data := BattleTileData.new(
-			cell,
-			tile_height,
-			surface_type,
-			true
-		)
+	_build_cell_aliases_from_logic_layer()
 
-		tiles[cell] = tile_data
-		canonical_footprints[cell] = [cell]
-		_update_bounds(cell)
+	if debug_logs:
+		print("Grid loaded. Tiles count=", tiles.size(), " bounds=", min_cell, " -> ", max_cell)
 
-	build_cell_aliases_from_logic_layer()
+func _clear_grid() -> void:
+	tiles.clear()
+	cell_aliases.clear()
+	canonical_footprints.clear()
+	has_bounds = false
 
-	print("Grid loaded from LogicLayer. Tiles count: ", tiles.size())
-	print("Bounds: min=", min_cell, " max=", max_cell)
+func _register_logic_cell(cell: Vector2i) -> void:
+	var tile_data_source := _get_logic_tile_data(cell)
 
-func build_cell_aliases_from_logic_layer() -> void:
+	var tile_height := TileCustomDataReader.get_int(tile_data_source, CUSTOM_HEIGHT, 0)
+	var surface_type := TileCustomDataReader.get_string(tile_data_source, CUSTOM_SURFACE_TYPE, SurfaceShapeFactory.FLAT)
+
+	var tile_data := BattleTileData.new(cell, tile_height, surface_type, true)
+
+	tiles[cell] = tile_data
+	canonical_footprints[cell] = [cell]
+	_update_bounds(cell)
+
+func _get_logic_tile_data(cell: Vector2i) -> TileData:
 	if logic_layer == null:
-		return
+		return null
 
+	return logic_layer.get_cell_tile_data(cell)
+
+func _build_cell_aliases_from_logic_layer() -> void:
 	for cell_variant in tiles.keys():
 		var cell: Vector2i = cell_variant as Vector2i
-		var cell_tile_data := logic_layer.get_cell_tile_data(cell)
+		var tile_data := _get_logic_tile_data(cell)
 
-		if cell_tile_data == null:
+		if tile_data == null:
 			continue
 
-		var alias_offset_x := get_custom_int(cell_tile_data, "alias_offset_x", 0)
-		var alias_offset_y := get_custom_int(cell_tile_data, "alias_offset_y", 0)
+		var alias_offset := Vector2i(
+			TileCustomDataReader.get_int(tile_data, CUSTOM_ALIAS_OFFSET_X, 0),
+			TileCustomDataReader.get_int(tile_data, CUSTOM_ALIAS_OFFSET_Y, 0)
+		)
 
-		if alias_offset_x == 0 and alias_offset_y == 0:
+		if alias_offset == Vector2i.ZERO:
 			continue
 
-		var alias_cell := cell + Vector2i(alias_offset_x, alias_offset_y)
-
-		add_cell_alias(alias_cell, cell)
+		add_cell_alias(cell + alias_offset, cell)
 
 func add_cell_alias(alias_cell: Vector2i, canonical_cell: Vector2i) -> void:
 	if has_tile(alias_cell):
-		push_warning(
-			"Alias ignoré : "
-			+ str(alias_cell)
-			+ " est déjà une vraie case logique."
-		)
+		push_warning("GridManager: alias ignoré, la cellule existe déjà: " + str(alias_cell))
 		return
 
 	if cell_aliases.has(alias_cell):
@@ -91,11 +97,11 @@ func add_cell_alias(alias_cell: Vector2i, canonical_cell: Vector2i) -> void:
 
 		if existing != canonical_cell:
 			push_warning(
-				"Alias conflictuel : "
+				"GridManager: alias conflictuel "
 				+ str(alias_cell)
-				+ " pointe déjà vers "
+				+ " -> "
 				+ str(existing)
-				+ ", impossible de le faire pointer vers "
+				+ ", demandé -> "
 				+ str(canonical_cell)
 			)
 
@@ -113,7 +119,8 @@ func add_cell_alias(alias_cell: Vector2i, canonical_cell: Vector2i) -> void:
 
 	canonical_footprints[canonical_cell] = footprint
 
-	print("Alias ajouté : ", alias_cell, " -> ", canonical_cell)
+	if debug_logs:
+		print("GridManager: alias ajouté ", alias_cell, " -> ", canonical_cell)
 
 func resolve_cell(cell: Vector2i) -> Vector2i:
 	if cell_aliases.has(cell):
@@ -123,7 +130,6 @@ func resolve_cell(cell: Vector2i) -> Vector2i:
 
 func get_footprint_cells(cell: Vector2i) -> Array[Vector2i]:
 	var canonical_cell := resolve_cell(cell)
-
 	var result: Array[Vector2i] = []
 
 	if not canonical_footprints.has(canonical_cell):
@@ -137,70 +143,6 @@ func get_footprint_cells(cell: Vector2i) -> Array[Vector2i]:
 
 	return result
 
-func get_custom_int(tile_data: TileData, key: String, default_value: int) -> int:
-	var value = tile_data.get_custom_data(key)
-
-	if value == null:
-		return default_value
-
-	return int(value)
-	
-func get_height_from_logic_layer(cell: Vector2i) -> int:
-	if logic_layer == null:
-		return 0
-
-	var cell_tile_data := logic_layer.get_cell_tile_data(cell)
-
-	if cell_tile_data == null:
-		return 0
-
-	var value = cell_tile_data.get_custom_data("height")
-
-	if value == null:
-		return 0
-
-	return int(value)
-
-func get_surface_type_from_logic_layer(cell: Vector2i) -> String:
-	if logic_layer == null:
-		return "flat"
-
-	var cell_tile_data := logic_layer.get_cell_tile_data(cell)
-
-	if cell_tile_data == null:
-		return "flat"
-
-	var value = cell_tile_data.get_custom_data("surface_type")
-
-	if value == null:
-		return "flat"
-
-	return str(value)
-
-func get_world_position_from_cell(cell: Vector2i) -> Vector2:
-	if logic_layer == null:
-		return Vector2.ZERO
-
-	var local_pos := logic_layer.map_to_local(cell)
-	return logic_layer.to_global(local_pos)
-
-func get_render_z_index(cell: Vector2i, tile_height: int, extra: int = 0) -> int:
-	return int((cell.x + cell.y) * 10 + tile_height * 100 + extra)
-
-func has_tile(cell: Vector2i) -> bool:
-	return tiles.has(cell)
-
-func get_tile(cell: Vector2i) -> BattleTileData:
-	return tiles.get(cell, null)
-
-func is_walkable(cell: Vector2i) -> bool:
-	var tile := get_tile(cell)
-
-	if tile == null:
-		return false
-
-	return tile.walkable and tile.occupied_by == null
-
 func get_neighbor_cells(cell: Vector2i) -> Array[Vector2i]:
 	if logic_layer == null:
 		return []
@@ -213,9 +155,7 @@ func get_neighbor_cells(cell: Vector2i) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	var seen: Dictionary = {}
 
-	var footprint_cells := get_footprint_cells(canonical_cell)
-
-	for footprint_cell: Vector2i in footprint_cells:
+	for footprint_cell: Vector2i in get_footprint_cells(canonical_cell):
 		for neighbor in logic_layer.get_surrounding_cells(footprint_cell):
 			var raw_neighbor: Vector2i = neighbor as Vector2i
 			var resolved_neighbor := resolve_cell(raw_neighbor)
@@ -233,6 +173,32 @@ func get_neighbor_cells(cell: Vector2i) -> Array[Vector2i]:
 			seen[resolved_neighbor] = true
 
 	return result
+
+func get_world_position_from_cell(cell: Vector2i) -> Vector2:
+	if logic_layer == null:
+		return Vector2.ZERO
+
+	var canonical_cell := resolve_cell(cell)
+	var local_pos := logic_layer.map_to_local(canonical_cell)
+	return logic_layer.to_global(local_pos)
+
+func get_render_z_index(cell: Vector2i, tile_height: int, extra: int = 0) -> int:
+	var canonical_cell := resolve_cell(cell)
+	return int((canonical_cell.x + canonical_cell.y) * 10 + tile_height * 100 + extra)
+
+func has_tile(cell: Vector2i) -> bool:
+	return tiles.has(resolve_cell(cell))
+
+func get_tile(cell: Vector2i) -> BattleTileData:
+	return tiles.get(resolve_cell(cell), null)
+
+func is_walkable(cell: Vector2i) -> bool:
+	var tile := get_tile(cell)
+
+	if tile == null:
+		return false
+
+	return tile.walkable and tile.occupied_by == null
 
 func _update_bounds(cell: Vector2i) -> void:
 	if not has_bounds:

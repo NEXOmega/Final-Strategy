@@ -17,11 +17,11 @@ func setup(
 	surface_polygon = p_polygon
 
 	if collision_polygon != null:
-		collision_polygon.polygon = p_polygon
+		collision_polygon.polygon = surface_polygon
 
 	z_as_relative = false
 	z_index = p_z_index
 
 func contains_global_point(global_pos: Vector2) -> bool:
-	var local_pos: Vector2 = to_local(global_pos)
+	var local_pos := to_local(global_pos)
 	return Geometry2D.is_point_in_polygon(local_pos, surface_polygon)
