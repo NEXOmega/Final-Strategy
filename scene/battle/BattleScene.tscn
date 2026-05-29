@@ -1,0 +1,119 @@
+[gd_scene format=4 uid="uid://bfjhcdwxsq8yx"]
+
+[ext_resource type="Texture2D" uid="uid://comx21lo1wl5f" path="res://assets/tiles/isometric_tiles.png" id="1_3q8ks"]
+[ext_resource type="Script" uid="uid://b6ylvto7am3u1" path="res://scripts/battle/GridManager.gd" id="1_tnse1"]
+[ext_resource type="Texture2D" uid="uid://dv01ik76sjm8v" path="res://assets/tiles/HELPER_tiles.png" id="2_3q8ks"]
+[ext_resource type="Script" uid="uid://gsxqosxvhis" path="res://scripts/battle/PathfindingManager.gd" id="3_cpv7m"]
+[ext_resource type="Script" uid="uid://2f0iuhyqxapb" path="res://scripts/battle/BattleController.gd" id="3_kclvo"]
+[ext_resource type="Script" uid="uid://busvk7j5d3tc2" path="res://scripts/battle/UnitManager.gd" id="3_swuoe"]
+[ext_resource type="PackedScene" uid="uid://cmyr37gkyt077" path="res://scene/battle/Unit.tscn" id="4_23hru"]
+[ext_resource type="Script" uid="uid://d1vlieh4n3bhy" path="res://scripts/battle/SurfaceManager.gd" id="4_picpo"]
+[ext_resource type="PackedScene" uid="uid://gk32quyc7qct" path="res://scene/battle/TileSurface.tscn" id="5_3q8ks"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_pxxgr"]
+texture = ExtResource("1_3q8ks")
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -3)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, -3)
+1:0/0/custom_data_1 = "flat"
+3:0/0 = 0
+3:0/0/texture_origin = Vector2i(0, -3)
+3:0/0/z_index = 1
+3:0/0/custom_data_1 = "stairs_left"
+3:0/0/custom_data_3 = 2
+2:0/0 = 0
+2:0/0/texture_origin = Vector2i(0, -3)
+2:0/0/z_index = 1
+2:0/0/custom_data_1 = "stairs_right"
+2:0/0/custom_data_3 = 2
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_gohy1"]
+texture = ExtResource("2_3q8ks")
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -3)
+0:0/0/custom_data_1 = "flat"
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, -3)
+1:0/0/custom_data_0 = 1
+1:0/0/custom_data_1 = "flat"
+2:0/0 = 0
+2:0/0/texture_origin = Vector2i(0, -3)
+2:0/0/custom_data_0 = 2
+2:0/0/custom_data_1 = "flat"
+3:0/0 = 0
+3:0/0/texture_origin = Vector2i(0, -3)
+3:0/0/custom_data_0 = 3
+3:0/0/custom_data_1 = "flat"
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_2y3si"]
+tile_shape = 1
+tile_size = Vector2i(16, 8)
+custom_data_layer_0/name = "height"
+custom_data_layer_0/type = 2
+custom_data_layer_1/name = "surface_type"
+custom_data_layer_1/type = 4
+custom_data_layer_2/name = "alias_offset_x"
+custom_data_layer_2/type = 2
+custom_data_layer_3/name = "alias_offset_y"
+custom_data_layer_3/type = 2
+sources/0 = SubResource("TileSetAtlasSource_pxxgr")
+sources/1 = SubResource("TileSetAtlasSource_gohy1")
+
+[node name="BattleScene" type="Node2D" unique_id=437244494]
+
+[node name="GroundLayer" type="TileMapLayer" parent="." unique_id=1295684266]
+visible = false
+y_sort_enabled = true
+texture_filter = 1
+tile_map_data = PackedByteArray("AAACABkAAAADAAAAAAADABgAAAADAAAAAAADABcAAAADAAAAAAADABoAAAABAAAAAAADABsAAAABAAAAAAADABkAAAABAAAAAAACABsAAAABAAAAAAADABwAAAABAAAAAAAEABoAAAABAAAAAAAEABsAAAABAAAAAAAEABwAAAABAAAAAAADAB0AAAABAAAAAAAEABcAAAACAAAAAAAFABgAAAACAAAAAAAFABwAAAABAAAAAAAEAB0AAAABAAAAAAAEAB4AAAABAAAAAAAFABkAAAACAAAAAAAGABgAAAABAAAAAAAFABcAAAABAAAAAAAFABYAAAABAAAAAAAFABUAAAABAAAAAAAGABYAAAABAAAAAAAGABcAAAABAAAAAAADABYAAAABAAAAAAACABcAAAABAAAAAAACABgAAAABAAAAAAABABkAAAABAAAAAAADABUAAAABAAAAAAAEABQAAAABAAAAAAAEABMAAAABAAAAAAAFABMAAAADAAAAAAAFABIAAAABAAAAAAA=")
+tile_set = SubResource("TileSet_2y3si")
+
+[node name="LogicLayer" type="TileMapLayer" parent="." unique_id=1886206958]
+z_index = 1
+y_sort_enabled = true
+texture_filter = 1
+tile_map_data = PackedByteArray("AAAEAB4AAQAAAAAAAAADAB0AAQAAAAAAAAAEABsAAQAAAAAAAAAFABwAAQAAAAAAAAAEAB0AAQAAAAAAAAAEABwAAQAAAAAAAAAGABgAAQABAAAAAAAFABcAAQABAAAAAAAGABcAAQABAAAAAAAGABYAAQABAAAAAAABABkAAQACAAAAAAACABgAAQACAAAAAAACABcAAQACAAAAAAADABYAAQACAAAAAAADABUAAQACAAAAAAAEABQAAQACAAAAAAAEABMAAQACAAAAAAAFABIAAQACAAAAAAAFABQAAQACAAAAAAADABwAAQAAAAAAAAACABkAAAADAAAAAAADABgAAAADAAAAAAADABcAAAADAAAAAAAFABkAAAACAAAAAAAFABgAAAACAAAAAAAFACAAAQAAAAAAAAAFAB8AAQAAAAAAAAAGAB4AAQAAAAAAAAAGAB0AAQAAAAAAAAAHABsAAQABAAAAAAAIABoAAQABAAAAAAAIAB8AAAACAAAAAAAIACIAAQAAAAAAAAAHACMAAQAAAAAAAAAHACQAAQAAAAAAAAAJAB0AAQABAAAAAAAJAB4AAQABAAAAAAAEAB8AAQAAAAAAAAAFACEAAQAAAAAAAAAGACIAAQAAAAAAAAAGACMAAQAAAAAAAAAFABUAAQABAAAAAAA=")
+tile_set = SubResource("TileSet_2y3si")
+
+[node name="TileSurfaces" type="Node2D" parent="." unique_id=2108284759]
+
+[node name="Units" type="Node2D" parent="." unique_id=454526072]
+
+[node name="GridManager" type="Node" parent="." unique_id=2022081705 node_paths=PackedStringArray("logic_layer")]
+script = ExtResource("1_tnse1")
+logic_layer = NodePath("../LogicLayer")
+hide_logic_layer_on_start = false
+
+[node name="SurfaceManager" type="Node" parent="." unique_id=733234896 node_paths=PackedStringArray("grid_manager", "surfaces_root")]
+script = ExtResource("4_picpo")
+grid_manager = NodePath("../GridManager")
+surfaces_root = NodePath("../TileSurfaces")
+tile_surface_scene = ExtResource("5_3q8ks")
+
+[node name="PathfindingManager" type="Node" parent="." unique_id=2039803275 node_paths=PackedStringArray("grid_manager")]
+script = ExtResource("3_cpv7m")
+grid_manager = NodePath("../GridManager")
+
+[node name="UnitManager" type="Node" parent="." unique_id=1126239230 node_paths=PackedStringArray("grid_manager", "units_root", "surface_manager")]
+script = ExtResource("3_swuoe")
+grid_manager = NodePath("../GridManager")
+units_root = NodePath("../Units")
+unit_scene = ExtResource("4_23hru")
+surface_manager = NodePath("../SurfaceManager")
+
+[node name="BattleController" type="Node" parent="." unique_id=1557699106 node_paths=PackedStringArray("grid_manager", "surface_manager", "unit_manager", "pathfinding_manager")]
+script = ExtResource("3_kclvo")
+grid_manager = NodePath("../GridManager")
+surface_manager = NodePath("../SurfaceManager")
+unit_manager = NodePath("../UnitManager")
+pathfinding_manager = NodePath("../PathfindingManager")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1561302885]
+position = Vector2(-236, -219)
+offset = Vector2(320, 320)
+zoom = Vector2(5, 5)

@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://5db1yomg1t4d"]
+
+[sub_resource type="GDScript" id="GDScript_ikp3i"]
+script/source = "class_name TileVisual
+extends Node2D
+
+@onready var background: ColorRect = $Background
+@onready var label: Label = $Label
+
+var tile_data: BattleTileData
+
+func setup(p_tile_data: BattleTileData, tile_size: int) -> void:
+	tile_data = p_tile_data
+	
+	background.size = Vector2(tile_size, tile_size)
+	background.position = Vector2(-tile_size / 2.0, -tile_size / 2.0)
+	
+	label.text = str(tile_data.height)
+	label.position = Vector2(-8, -12)
+	
+	_update_color()
+
+func _update_color() -> void:
+	if tile_data == null:
+		return
+	
+	match tile_data.height:
+		0:
+			background.color = Color(0.25, 0.55, 0.25, 1.0)
+		1:
+			background.color = Color(0.35, 0.65, 0.35, 1.0)
+		2:
+			background.color = Color(0.45, 0.55, 0.30, 1.0)
+		3:
+			background.color = Color(0.55, 0.45, 0.25, 1.0)
+		_:
+			background.color = Color(0.65, 0.65, 0.65, 1.0)
+"
+
+[node name="TileVisual" type="Node2D" unique_id=263057561]
+script = SubResource("GDScript_ikp3i")
+
+[node name="Background" type="ColorRect" parent="." unique_id=948278502]
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+
+[node name="Label" type="Label" parent="." unique_id=797104140]
+offset_right = 40.0
+offset_bottom = 23.0
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1

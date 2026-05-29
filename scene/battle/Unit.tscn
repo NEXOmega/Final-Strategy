@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://cmyr37gkyt077"]
+
+[ext_resource type="Texture2D" uid="uid://ryhifk5hweg1" path="res://assets/characters/Remedi.png" id="1_bqo70"]
+[ext_resource type="Script" uid="uid://dtu6cq6p482xv" path="res://scripts/battle/Unit.gd" id="1_d1wk4"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d1wk4"]
+atlas = ExtResource("1_bqo70")
+region = Rect2(6, 2, 24, 32)
+
+[node name="Unit" type="Node2D" unique_id=740778517]
+script = ExtResource("1_d1wk4")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1662399251]
+position = Vector2(0, -6)
+scale = Vector2(0.5, 0.5000001)
+texture = SubResource("AtlasTexture_d1wk4")
