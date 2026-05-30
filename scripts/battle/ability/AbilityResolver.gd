@@ -42,8 +42,7 @@ func use_ability(
 
 	apply_ability_effect(user, ability, target_unit, target_cell)
 
-	user.current_actions -= ability.action_cost
-	user.has_acted_this_turn = true
+	user.consume_action(ability.action_cost)
 
 	if ability.ends_turn_after_use and turn_manager != null:
 		turn_manager.end_active_unit_turn()
@@ -77,8 +76,8 @@ func apply_physical_damage(
 	if target == null:
 		return
 
-	var raw_damage: int = user.get_attack() + ability.power
-	var final_damage: int = max(1, raw_damage - target.get_defense())
+	var raw_damage: int = user.get_stat(BattleStats.StatType.ATTACK) + ability.power
+	var final_damage: int = max(1, raw_damage - target.get_stat(BattleStats.StatType.DEFENSE))
 
 	print(user.unit_name, " utilise ", ability.display_name, " sur ", target.unit_name, " dégâts=", final_damage)
 	target.take_damage(final_damage)
@@ -94,8 +93,8 @@ func apply_magical_damage(
 	if target == null:
 		return
 
-	var raw_damage: int = user.get_magic_attack() + ability.power
-	var final_damage: int = max(1, raw_damage - target.get_magic_defense())
+	var raw_damage: int = user.get_stat(BattleStats.StatType.MAGIC_ATTACK) + ability.power
+	var final_damage: int = max(1, raw_damage - target.get_stat(BattleStats.StatType.MAGIC_DEFENSE))
 
 	print(user.unit_name, " lance ", ability.display_name, " sur ", target.unit_name, " dégâts=", final_damage)
 	target.take_damage(final_damage)
@@ -134,21 +133,17 @@ func apply_heal(
 	if target == null:
 		return
 
-	var heal_amount: int = user.get_magic_attack() + ability.power
-
-	target.hp = min(target.get_max_hp(), target.hp + heal_amount)
+	var heal_amount: int = user.get_stat(BattleStats.StatType.MAGIC_ATTACK) + ability.power
 
 	print(
 		user.unit_name,
 		" soigne ",
 		target.unit_name,
 		" de ",
-		heal_amount,
-		". HP=",
-		target.hp,
-		"/",
-		target.get_max_hp()
+		heal_amount
 	)
+
+	target.heal(heal_amount)
 	
 func is_valid_target(
 	user: Unit,

@@ -26,7 +26,7 @@ func get_movement_result(unit: Unit) -> PathfindingResult:
 
 			var next_cost: int = current_cost + get_movement_cost(unit, current_cell, next_cell)
 
-			if next_cost > unit.current_mp:
+			if next_cost > unit.get_stat(BattleStats.StatType.MOVE_POINTS_NOW):
 				continue
 
 			var previous_best_cost: int = result.get_cost(next_cell)
@@ -77,10 +77,10 @@ func can_unit_enter_cell(unit: Unit, from_cell: Vector2i, to_cell: Vector2i) -> 
 
 	var height_diff: int = to_tile.height - from_tile.height
 
-	if height_diff > unit.jump:
+	if height_diff > unit.get_stat(BattleStats.StatType.JUMP):
 		return false
 
-	if height_diff < -unit.max_fall:
+	if height_diff < -unit.get_stat(BattleStats.StatType.MAX_FALL):
 		return false
 
 	return true

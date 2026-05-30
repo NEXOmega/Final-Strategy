@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://d1etof1bkiyc3"]
+
+[ext_resource type="Script" uid="uid://3e0pmklorlbp" path="res://scripts/battle/ui/AbilityMenu.gd" id="1_5tuis"]
+
+[node name="AbilityMenu" type="Control" unique_id=1111580257]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_5tuis")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1759071623]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=1097056089]
+layout_mode = 2
+
+[node name="AbilityList" type="VBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=2098344688]
+unique_name_in_owner = true
+layout_mode = 2

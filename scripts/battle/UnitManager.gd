@@ -91,8 +91,18 @@ func reset_all_units_movement_points() -> void:
 		if unit == null:
 			continue
 
-		unit.reset_movement_points()
-		print(unit.unit_name, " PM restaurés : ", unit.current_mp, "/", unit.max_mp)
+		unit.set_base_stat(
+			BattleStats.StatType.MOVE_POINTS_NOW,
+			unit.get_stat(BattleStats.StatType.MOVE_POINTS_MAX)
+		)
+
+		print(
+			unit.unit_name,
+			" PM restaurés : ",
+			unit.get_stat(BattleStats.StatType.MOVE_POINTS_NOW),
+			"/",
+			unit.get_stat(BattleStats.StatType.MOVE_POINTS_MAX)
+		)
 
 func get_unit_at_cell(cell: Vector2i) -> Unit:
 	var tile := grid_manager.get_tile(cell)

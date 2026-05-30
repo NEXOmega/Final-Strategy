@@ -26,8 +26,7 @@ func can_pay_cost(user: Unit) -> bool:
 	if user == null:
 		return false
 
-	if user.current_actions < action_cost:
+	if user.get_stat(BattleStats.StatType.ACTIONS_NOW) < action_cost:
 		return false
 
-	# Plus tard : current_ap / current_mp magique séparé si besoin.
 	return true

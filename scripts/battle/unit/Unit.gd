@@ -1,32 +1,19 @@
 class_name Unit
 extends Node2D
 
+@export var unit_definition: UnitDefinition
+
 var unit_name: String = "Unit"
 var team_id: int = 0
 var grid_position: Vector2i = Vector2i.ZERO
 
-var max_hp: int = 100
-var hp: int = 100
-
-var max_mp: int = 4
-var current_mp: int = 4
-
-var max_actions: int = 1
-var current_actions: int = 1
-
-var jump: int = 1
-var max_fall: int = 2
-
-var initiative: int = 10
-
-@export var unit_definition: UnitDefinition
-
-var stats: CombatStats
+var stats: BattleStats = null
 var abilities: Array[AbilityDefinition] = []
 
 var has_moved_this_turn: bool = false
 var has_acted_this_turn: bool = false
 var has_ended_turn: bool = false
+
 
 func setup(
 	p_unit_name: String,
@@ -37,101 +24,172 @@ func setup(
 	team_id = p_team_id
 	grid_position = p_grid_position
 
+
+func apply_definition(definition: UnitDefinition) -> void:
+	unit_definition = definition
+
+	if unit_definition == null:
+		push_error("Unit: unit_definition null.")
+		return
+
+	unit_name = unit_definition.display_name
+	stats = unit_definition.build_starting_stats()
+	abilities = unit_definition.get_all_abilities()
+
+	if stats == null:
+		push_error("Unit: impossible de construire les stats de " + unit_name)
+		return
+
+	stats.restore_to_max(BattleStats.StatType.HP_NOW, BattleStats.StatType.HP_MAX)
+	stats.restore_to_max(BattleStats.StatType.MOVE_POINTS_NOW, BattleStats.StatType.MOVE_POINTS_MAX)
+	stats.restore_to_max(BattleStats.StatType.ACTIONS_NOW, BattleStats.StatType.ACTIONS_MAX)
+
+
 func start_turn() -> void:
 	has_moved_this_turn = false
 	has_acted_this_turn = false
 	has_ended_turn = false
 
-	current_mp = max_mp
-	current_actions = max_actions
+	if stats == null:
+		return
 
-	print(unit_name, " commence son tour. PM=", current_mp, "/", max_mp, " Actions=", current_actions, "/", max_actions)
+	stats.restore_to_max(BattleStats.StatType.MOVE_POINTS_NOW, BattleStats.StatType.MOVE_POINTS_MAX)
+	stats.restore_to_max(BattleStats.StatType.ACTIONS_NOW, BattleStats.StatType.ACTIONS_MAX)
+
+	print(
+		unit_name,
+		" commence son tour. PM=",
+		get_stat(BattleStats.StatType.MOVE_POINTS_NOW),
+		"/",
+		get_stat(BattleStats.StatType.MOVE_POINTS_MAX),
+		" Actions=",
+		get_stat(BattleStats.StatType.ACTIONS_NOW),
+		"/",
+		get_stat(BattleStats.StatType.ACTIONS_MAX)
+	)
+
 
 func end_turn() -> void:
 	has_ended_turn = true
-	current_mp = 0
-	current_actions = 0
+
+	if stats != null:
+		stats.set_base(BattleStats.StatType.MOVE_POINTS_NOW, 0)
+		stats.set_base(BattleStats.StatType.ACTIONS_NOW, 0)
 
 	print(unit_name, " termine son tour.")
+
 
 func mark_moved() -> void:
 	has_moved_this_turn = true
 
-func can_act() -> bool:
-	return current_actions > 0 and not has_acted_this_turn
 
-func consume_action() -> void:
+func can_act() -> bool:
+	return get_stat(BattleStats.StatType.ACTIONS_NOW) > 0 and not has_acted_this_turn
+
+
+func consume_action(amount: int = 1) -> void:
+	if stats == null:
+		return
+
+	var current_actions: int = get_stat(BattleStats.StatType.ACTIONS_NOW)
+
 	if current_actions <= 0:
 		return
 
-	current_actions -= 1
+	var new_actions: int = int(max(0, current_actions - amount))
+	stats.set_base(BattleStats.StatType.ACTIONS_NOW, new_actions)
+
 	has_acted_this_turn = true
 
-func take_damage(amount: int) -> void:
-	hp = max(0, hp - amount)
-	print(unit_name, " subit ", amount, " dégâts. HP=", hp, "/", max_hp)
 
-func is_dead() -> bool:
-	return hp <= 0
-
-func is_enemy_of(other_unit: Unit) -> bool:
-	if other_unit == null:
-		return false
-
-	return team_id != other_unit.team_id
-
-func apply_definition(definition: UnitDefinition) -> void:
-	unit_definition = definition
-
-	if definition == null:
+func consume_move_points(amount: int) -> void:
+	if stats == null:
 		return
 
-	unit_name = definition.display_name
+	var current_move_points: int = get_stat(BattleStats.StatType.MOVE_POINTS_NOW)
+	var new_move_points: int = int(max(0, current_move_points - amount))
 
-	stats = build_runtime_stats(definition)
+	stats.set_base(BattleStats.StatType.MOVE_POINTS_NOW, new_move_points)
 
-	max_hp = stats.max_hp
-	hp = max_hp
 
-	max_mp = stats.max_move_points
-	current_mp = max_mp
+func take_damage(amount: int) -> void:
+	if stats == null:
+		return
 
-	max_actions = stats.max_actions
-	current_actions = max_actions
+	var current_hp: int = get_stat(BattleStats.StatType.HP_NOW)
+	var new_hp: int = int(max(0, current_hp - amount))
 
-	jump = stats.jump
-	max_fall = stats.max_fall
-	initiative = stats.speed
+	stats.set_base(BattleStats.StatType.HP_NOW, new_hp)
 
-	abilities = definition.get_all_abilities()
+	print(
+		unit_name,
+		" subit ",
+		amount,
+		" dégâts. HP=",
+		get_stat(BattleStats.StatType.HP_NOW),
+		"/",
+		get_stat(BattleStats.StatType.HP_MAX)
+	)
 
-func build_runtime_stats(definition: UnitDefinition) -> CombatStats:
-	var result := CombatStats.new()
 
-	if definition.race != null and definition.race.base_stats != null:
-		_add_stats(result, definition.race.base_stats)
+func heal(amount: int) -> void:
+	if stats == null:
+		return
 
-	if definition.main_job != null and definition.main_job.stat_bonus != null:
-		_add_stats(result, definition.main_job.stat_bonus)
+	var current_hp: int = get_stat(BattleStats.StatType.HP_NOW)
 
-	if definition.sub_job != null and definition.sub_job.stat_bonus != null:
-		_add_stats(result, definition.sub_job.stat_bonus)
+	stats.set_base(BattleStats.StatType.HP_NOW, current_hp + amount)
+	stats.clamp_current_to_max(BattleStats.StatType.HP_NOW, BattleStats.StatType.HP_MAX)
 
-	if definition.base_stats_override != null:
-		_add_stats(result, definition.base_stats_override)
+	print(
+		unit_name,
+		" récupère ",
+		amount,
+		" HP. HP=",
+		get_stat(BattleStats.StatType.HP_NOW),
+		"/",
+		get_stat(BattleStats.StatType.HP_MAX)
+	)
 
-	return result
 
-func _add_stats(target: CombatStats, source: CombatStats) -> void:
-	target.max_hp += source.max_hp
-	target.max_move_points += source.max_move_points
-	target.max_actions += source.max_actions
+func is_dead() -> bool:
+	return get_stat(BattleStats.StatType.HP_NOW) <= 0
 
-	target.attack += source.attack
-	target.defense += source.defense
-	target.magic_attack += source.magic_attack
-	target.magic_defense += source.magic_defense
 
-	target.speed += source.speed
-	target.jump += source.jump
-	target.max_fall += source.max_fall
+func is_enemy_of(other_unit: Unit) -> bool:
+	return other_unit != null and team_id != other_unit.team_id
+
+
+func get_stat(stat_type: BattleStats.StatType) -> int:
+	if stats == null:
+		return 0
+
+	return stats.get_stat(stat_type)
+
+
+func get_base_stat(stat_type: BattleStats.StatType) -> int:
+	if stats == null:
+		return 0
+
+	return stats.get_base(stat_type)
+
+
+func set_base_stat(stat_type: BattleStats.StatType, value: int) -> void:
+	if stats == null:
+		return
+
+	stats.set_base(stat_type, value)
+
+
+# Alias camelCase si tu préfères :
+# unit.getStat(BattleStats.StatType.ATTACK)
+func getStat(stat_type: BattleStats.StatType) -> int:
+	return get_stat(stat_type)
+
+
+func getBaseStat(stat_type: BattleStats.StatType) -> int:
+	return get_base_stat(stat_type)
+
+
+func setBaseStat(stat_type: BattleStats.StatType, value: int) -> void:
+	set_base_stat(stat_type, value)

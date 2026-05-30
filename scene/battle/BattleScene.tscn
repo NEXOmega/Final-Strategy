@@ -12,6 +12,9 @@
 [ext_resource type="Script" uid="uid://bk2x6tcjcmhbk" path="res://scripts/battle/TurnManager.gd" id="9_gohy1"]
 [ext_resource type="Resource" uid="uid://dwugqr73rlkxe" path="res://resources/units/soldier.tres" id="9_h02ku"]
 [ext_resource type="Resource" uid="uid://cxdc21r5bp73b" path="res://resources/units/battle_mage.tres" id="10_2y3si"]
+[ext_resource type="Script" uid="uid://dcu5gbd010mkv" path="res://scripts/battle/ability/AbilityResolver.gd" id="12_pavgh"]
+[ext_resource type="PackedScene" uid="uid://h8w4ud7k4065" path="res://scene/battle/ui/BattleActionMenu.tscn" id="14_pavgh"]
+[ext_resource type="PackedScene" uid="uid://d1etof1bkiyc3" path="res://scene/battle/ui/AbilityMenu.tscn" id="15_fof2v"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_pxxgr"]
 texture = ExtResource("1_3q8ks")
@@ -121,14 +124,24 @@ goblin_definition = ExtResource("9_h02ku")
 script = ExtResource("9_gohy1")
 unit_manager = NodePath("../UnitManager")
 
-[node name="BattleController" type="Node" parent="." unique_id=1557699106 node_paths=PackedStringArray("grid_manager", "surface_manager", "unit_manager", "pathfinding_manager", "turn_manager", "turn_label")]
+[node name="AbilityResolver" type="Node" parent="." unique_id=1304126034 node_paths=PackedStringArray("grid_manager", "unit_manager", "turn_manager")]
+script = ExtResource("12_pavgh")
+grid_manager = NodePath("../GridManager")
+unit_manager = NodePath("../UnitManager")
+turn_manager = NodePath("../TurnManager")
+metadata/_custom_type_script = "uid://dcu5gbd010mkv"
+
+[node name="BattleController" type="Node" parent="." unique_id=1557699106 node_paths=PackedStringArray("grid_manager", "surface_manager", "unit_manager", "pathfinding_manager", "turn_manager", "ability_resolver", "turn_label", "action_menu", "ability_menu")]
 script = ExtResource("3_kclvo")
 grid_manager = NodePath("../GridManager")
 surface_manager = NodePath("../SurfaceManager")
 unit_manager = NodePath("../UnitManager")
 pathfinding_manager = NodePath("../PathfindingManager")
 turn_manager = NodePath("../TurnManager")
+ability_resolver = NodePath("../AbilityResolver")
 turn_label = NodePath("../CanvasLayer/TurnLabel")
+action_menu = NodePath("../CanvasLayer/BattleActionMenu")
+ability_menu = NodePath("../CanvasLayer/AbilityMenu")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1561302885]
 position = Vector2(-236, -219)
@@ -142,3 +155,15 @@ offset_left = -25.0
 offset_top = 42.0
 offset_right = 15.0
 offset_bottom = 65.0
+
+[node name="BattleActionMenu" parent="CanvasLayer" unique_id=762875730 instance=ExtResource("14_pavgh")]
+offset_left = -35.0
+offset_top = 22.0
+offset_right = 185.0
+offset_bottom = 162.0
+
+[node name="AbilityMenu" parent="CanvasLayer" unique_id=1111580257 instance=ExtResource("15_fof2v")]
+offset_left = 64.0
+offset_top = 74.0
+offset_right = 64.0
+offset_bottom = 74.0

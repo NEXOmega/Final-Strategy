@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://h8w4ud7k4065"]
+
+[ext_resource type="Script" uid="uid://c141rq3nqcreg" path="res://scripts/battle/ui/BattleActionMenu.gd" id="1_p6o7j"]
+
+[node name="BattleActionMenu" type="Control" unique_id=762875730]
+custom_minimum_size = Vector2(220, 140)
+layout_mode = 3
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 20.0
+offset_bottom = 20.0
+script = ExtResource("1_p6o7j")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=2094427243]
+custom_minimum_size = Vector2(220, 140)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=1430481660]
+layout_mode = 2
+
+[node name="MoveButton" type="Button" parent="PanelContainer/VBoxContainer" unique_id=806177278]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Move"
+
+[node name="AbilitiesButton" type="Button" parent="PanelContainer/VBoxContainer" unique_id=376610526]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Abilities"
+
+[node name="WaitButton" type="Button" parent="PanelContainer/VBoxContainer" unique_id=1324553815]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Wait"

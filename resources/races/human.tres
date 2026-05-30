@@ -1,17 +1,50 @@
 [gd_resource type="Resource" script_class="RaceDefinition" format=3 uid="uid://frf4puaet7al"]
 
 [ext_resource type="Script" uid="uid://ikochmlfwic8" path="res://scripts/battle/unit/JobDefinition.gd" id="1_tthec"]
-[ext_resource type="Script" uid="uid://cv0s31rc3kx4q" path="res://scripts/battle/unit/CombatStat.gd" id="2_ojrk1"]
 [ext_resource type="Script" uid="uid://dmfjildkg0qgj" path="res://scripts/battle/unit/RaceDefinition.gd" id="2_qo0wv"]
 [ext_resource type="Resource" uid="uid://dti1tl320wwwo" path="res://resources/jobs/soldier.tres" id="2_yg10q"]
 [ext_resource type="Resource" uid="uid://c5vqftl0eeek" path="res://resources/jobs/black_mage.tres" id="3_ua1nc"]
+[ext_resource type="Script" uid="uid://cv0s31rc3kx4q" path="res://scripts/battle/stats/CombatStat.gd" id="4_yg10q"]
+[ext_resource type="Script" uid="uid://belu0ulxfmayc" path="res://scripts/battle/stats/CombatStatValue.gd" id="5_ua1nc"]
+
+[sub_resource type="Resource" id="Resource_d25js"]
+script = ExtResource("5_ua1nc")
+value = 100
+metadata/_custom_type_script = "uid://belu0ulxfmayc"
+
+[sub_resource type="Resource" id="Resource_ua1nc"]
+script = ExtResource("5_ua1nc")
+stat_type = 3
+value = 4
+metadata/_custom_type_script = "uid://belu0ulxfmayc"
+
+[sub_resource type="Resource" id="Resource_h8sn3"]
+script = ExtResource("5_ua1nc")
+stat_type = 5
+value = 1
+metadata/_custom_type_script = "uid://belu0ulxfmayc"
+
+[sub_resource type="Resource" id="Resource_g4i1d"]
+script = ExtResource("5_ua1nc")
+stat_type = 6
+value = 5
+metadata/_custom_type_script = "uid://belu0ulxfmayc"
+
+[sub_resource type="Resource" id="Resource_sj3ts"]
+script = ExtResource("5_ua1nc")
+stat_type = 10
+value = 10
+metadata/_custom_type_script = "uid://belu0ulxfmayc"
+
+[sub_resource type="Resource" id="Resource_wkf5p"]
+script = ExtResource("5_ua1nc")
+stat_type = 11
+value = 1
+metadata/_custom_type_script = "uid://belu0ulxfmayc"
 
 [sub_resource type="Resource" id="Resource_yg10q"]
-script = ExtResource("2_ojrk1")
-max_hp = 80
-max_move_points = 3
-attack = 8
-magic_attack = 6
+script = ExtResource("4_yg10q")
+values = Array[ExtResource("5_ua1nc")]([SubResource("Resource_d25js"), SubResource("Resource_ua1nc"), SubResource("Resource_h8sn3"), SubResource("Resource_g4i1d"), SubResource("Resource_sj3ts"), SubResource("Resource_wkf5p")])
 metadata/_custom_type_script = "uid://cv0s31rc3kx4q"
 
 [resource]

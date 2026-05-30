@@ -46,10 +46,13 @@ func build_turn_order() -> void:
 	turn_order = unit_manager.get_alive_units()
 
 	turn_order.sort_custom(func(a: Unit, b: Unit) -> bool:
-		if a.initiative == b.initiative:
+		var a_speed: int = a.get_stat(BattleStats.StatType.SPEED)
+		var b_speed: int = b.get_stat(BattleStats.StatType.SPEED)
+
+		if a_speed == b_speed:
 			return a.unit_name < b.unit_name
 
-		return a.initiative > b.initiative
+		return a_speed > b_speed
 	)
 
 func start_active_unit_turn() -> void:
@@ -161,6 +164,12 @@ func get_turn_order_debug_string() -> String:
 		if unit == null:
 			continue
 
-		parts.append(unit.unit_name + "(team=" + str(unit.team_id) + ", ini=" + str(unit.initiative) + ")")
-
+		parts.append(
+			unit.unit_name
+			+ "(team="
+			+ str(unit.team_id)
+			+ ", speed="
+			+ str(unit.get_stat(BattleStats.StatType.SPEED))
+			+ ")"
+		)
 	return " -> ".join(parts)
