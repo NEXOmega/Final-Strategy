@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="RaceDefinition" format=3 uid="uid://frf4puaet7al"]
+
+[ext_resource type="Script" uid="uid://ikochmlfwic8" path="res://scripts/battle/unit/JobDefinition.gd" id="1_tthec"]
+[ext_resource type="Script" uid="uid://cv0s31rc3kx4q" path="res://scripts/battle/unit/CombatStat.gd" id="2_ojrk1"]
+[ext_resource type="Script" uid="uid://dmfjildkg0qgj" path="res://scripts/battle/unit/RaceDefinition.gd" id="2_qo0wv"]
+[ext_resource type="Resource" uid="uid://dti1tl320wwwo" path="res://resources/jobs/soldier.tres" id="2_yg10q"]
+[ext_resource type="Resource" uid="uid://c5vqftl0eeek" path="res://resources/jobs/black_mage.tres" id="3_ua1nc"]
+
+[sub_resource type="Resource" id="Resource_yg10q"]
+script = ExtResource("2_ojrk1")
+max_hp = 80
+max_move_points = 3
+attack = 8
+magic_attack = 6
+metadata/_custom_type_script = "uid://cv0s31rc3kx4q"
+
+[resource]
+script = ExtResource("2_qo0wv")
+id = "human"
+display_name = "Human"
+base_stats = SubResource("Resource_yg10q")
+allowed_jobs = Array[ExtResource("1_tthec")]([ExtResource("2_yg10q"), ExtResource("3_ua1nc")])
+metadata/_custom_type_script = "uid://dmfjildkg0qgj"

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="JobDefinition" format=3 uid="uid://c5vqftl0eeek"]
+
+[ext_resource type="Script" uid="uid://btmfmedu8eixb" path="res://scripts/battle/ability/AbilityDefinition.gd" id="1_jts1m"]
+[ext_resource type="Resource" uid="uid://val18aj7lifv" path="res://resources/abilities/fire.tres" id="2_cioxt"]
+[ext_resource type="Script" uid="uid://ikochmlfwic8" path="res://scripts/battle/unit/JobDefinition.gd" id="2_gygn2"]
+[ext_resource type="Script" uid="uid://cv0s31rc3kx4q" path="res://scripts/battle/unit/CombatStat.gd" id="3_gygn2"]
+
+[sub_resource type="Resource" id="Resource_cioxt"]
+script = ExtResource("3_gygn2")
+max_hp = 0
+max_move_points = 0
+attack = 0
+defense = 0
+magic_attack = 5
+magic_defense = 4
+speed = 0
+jump = 0
+max_fall = 0
+metadata/_custom_type_script = "uid://cv0s31rc3kx4q"
+
+[resource]
+script = ExtResource("2_gygn2")
+id = "black_mage"
+display_name = "Black Mage"
+stat_bonus = SubResource("Resource_cioxt")
+abilities = Array[ExtResource("1_jts1m")]([ExtResource("2_cioxt")])
+metadata/_custom_type_script = "uid://ikochmlfwic8"

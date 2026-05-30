@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UnitDefinition" format=3 uid="uid://cxdc21r5bp73b"]
+
+[ext_resource type="Script" uid="uid://btmfmedu8eixb" path="res://scripts/battle/ability/AbilityDefinition.gd" id="1_3ecsp"]
+[ext_resource type="Resource" uid="uid://c5vqftl0eeek" path="res://resources/jobs/black_mage.tres" id="2_85pid"]
+[ext_resource type="Script" uid="uid://d3j3e5fahpy1b" path="res://scripts/battle/unit/UnitDefinition.gd" id="2_hkttw"]
+[ext_resource type="Resource" uid="uid://dti1tl320wwwo" path="res://resources/jobs/soldier.tres" id="2_x7o8b"]
+[ext_resource type="Resource" uid="uid://frf4puaet7al" path="res://resources/races/human.tres" id="3_x7o8b"]
+
+[resource]
+script = ExtResource("2_hkttw")
+id = "battle_mage"
+display_name = "Battle Mage"
+race = ExtResource("3_x7o8b")
+main_job = ExtResource("2_x7o8b")
+sub_job = ExtResource("2_85pid")
+metadata/_custom_type_script = "uid://d3j3e5fahpy1b"

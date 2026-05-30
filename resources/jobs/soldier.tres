@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="JobDefinition" format=3 uid="uid://dti1tl320wwwo"]
+
+[ext_resource type="Script" uid="uid://btmfmedu8eixb" path="res://scripts/battle/ability/AbilityDefinition.gd" id="1_e30sw"]
+[ext_resource type="Resource" uid="uid://ds1o5p46j4dnu" path="res://resources/abilities/attack.tres" id="2_u0kr1"]
+[ext_resource type="Script" uid="uid://ikochmlfwic8" path="res://scripts/battle/unit/JobDefinition.gd" id="2_xlln0"]
+[ext_resource type="Script" uid="uid://cv0s31rc3kx4q" path="res://scripts/battle/unit/CombatStat.gd" id="3_xlln0"]
+
+[sub_resource type="Resource" id="Resource_u0kr1"]
+script = ExtResource("3_xlln0")
+max_hp = 20
+max_move_points = 1
+max_actions = 0
+attack = 5
+defense = 2
+magic_attack = 0
+magic_defense = 0
+speed = 2
+jump = 0
+max_fall = 0
+metadata/_custom_type_script = "uid://cv0s31rc3kx4q"
+
+[resource]
+script = ExtResource("2_xlln0")
+id = "soldier"
+display_name = "Soldier"
+stat_bonus = SubResource("Resource_u0kr1")
+abilities = Array[ExtResource("1_e30sw")]([ExtResource("2_u0kr1")])
+metadata/_custom_type_script = "uid://ikochmlfwic8"

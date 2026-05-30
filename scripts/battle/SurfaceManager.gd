@@ -11,6 +11,8 @@ extends Node
 @export var highlight_z_index: int = 4095
 @export var debug_logs: bool = false
 
+var active_unit_highlight: Polygon2D = null
+
 var surfaces: Dictionary = {}
 var highlight_nodes: Array[Polygon2D] = []
 
@@ -181,3 +183,28 @@ func get_unit_world_position(cell: Vector2i) -> Vector2:
 	)
 
 	return base_pos + anchor_offset
+
+func show_active_unit_highlight(cell: Vector2i) -> void:
+	clear_active_unit_highlight()
+
+	var surface := get_surface_at_cell(cell)
+
+	if surface == null:
+		return
+
+	var polygon := Polygon2D.new()
+	surfaces_root.add_child(polygon)
+
+	polygon.polygon = surface.surface_polygon
+	polygon.color = Color(1.0, 1.0, 0.2, 0.45)
+	polygon.global_position = surface.global_position
+	polygon.z_as_relative = false
+	polygon.z_index = 4096
+
+	active_unit_highlight = polygon
+
+func clear_active_unit_highlight() -> void:
+	if active_unit_highlight != null and is_instance_valid(active_unit_highlight):
+		active_unit_highlight.queue_free()
+
+	active_unit_highlight = null

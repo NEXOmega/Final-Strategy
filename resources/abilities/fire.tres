@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AbilityDefinition" format=3 uid="uid://val18aj7lifv"]
+
+[ext_resource type="Script" uid="uid://btmfmedu8eixb" path="res://scripts/battle/ability/AbilityDefinition.gd" id="1_52ic4"]
+
+[resource]
+script = ExtResource("1_52ic4")
+id = "fire"
+display_name = "Fire"
+damage_type = 1
+element = 1
+power = 15
+mp_cost = 5
+max_range = 3
+metadata/_custom_type_script = "uid://btmfmedu8eixb"

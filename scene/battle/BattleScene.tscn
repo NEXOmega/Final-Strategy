@@ -6,10 +6,12 @@
 [ext_resource type="Script" uid="uid://gsxqosxvhis" path="res://scripts/battle/PathfindingManager.gd" id="3_cpv7m"]
 [ext_resource type="Script" uid="uid://2f0iuhyqxapb" path="res://scripts/battle/BattleController.gd" id="3_kclvo"]
 [ext_resource type="Script" uid="uid://busvk7j5d3tc2" path="res://scripts/battle/UnitManager.gd" id="3_swuoe"]
-[ext_resource type="PackedScene" uid="uid://cmyr37gkyt077" path="res://scene/battle/Unit.tscn" id="4_23hru"]
+[ext_resource type="PackedScene" uid="uid://cmyr37gkyt077" path="res://scene/battle/unit/Unit.tscn" id="4_23hru"]
 [ext_resource type="Script" uid="uid://d1vlieh4n3bhy" path="res://scripts/battle/SurfaceManager.gd" id="4_picpo"]
 [ext_resource type="PackedScene" uid="uid://gk32quyc7qct" path="res://scene/battle/TileSurface.tscn" id="5_3q8ks"]
 [ext_resource type="Script" uid="uid://bk2x6tcjcmhbk" path="res://scripts/battle/TurnManager.gd" id="9_gohy1"]
+[ext_resource type="Resource" uid="uid://dwugqr73rlkxe" path="res://resources/units/soldier.tres" id="9_h02ku"]
+[ext_resource type="Resource" uid="uid://cxdc21r5bp73b" path="res://resources/units/battle_mage.tres" id="10_2y3si"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_pxxgr"]
 texture = ExtResource("1_3q8ks")
@@ -111,20 +113,32 @@ grid_manager = NodePath("../GridManager")
 units_root = NodePath("../Units")
 unit_scene = ExtResource("4_23hru")
 surface_manager = NodePath("../SurfaceManager")
+knight_definition = ExtResource("9_h02ku")
+battle_mage_definition = ExtResource("10_2y3si")
+goblin_definition = ExtResource("9_h02ku")
 
 [node name="TurnManager" type="Node" parent="." unique_id=1009422253 node_paths=PackedStringArray("unit_manager")]
 script = ExtResource("9_gohy1")
 unit_manager = NodePath("../UnitManager")
 
-[node name="BattleController" type="Node" parent="." unique_id=1557699106 node_paths=PackedStringArray("grid_manager", "surface_manager", "unit_manager", "pathfinding_manager", "turn_manager")]
+[node name="BattleController" type="Node" parent="." unique_id=1557699106 node_paths=PackedStringArray("grid_manager", "surface_manager", "unit_manager", "pathfinding_manager", "turn_manager", "turn_label")]
 script = ExtResource("3_kclvo")
 grid_manager = NodePath("../GridManager")
 surface_manager = NodePath("../SurfaceManager")
 unit_manager = NodePath("../UnitManager")
 pathfinding_manager = NodePath("../PathfindingManager")
 turn_manager = NodePath("../TurnManager")
+turn_label = NodePath("../CanvasLayer/TurnLabel")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1561302885]
 position = Vector2(-236, -219)
 offset = Vector2(320, 320)
 zoom = Vector2(5, 5)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1371188617]
+
+[node name="TurnLabel" type="Label" parent="CanvasLayer" unique_id=62144259]
+offset_left = -25.0
+offset_top = 42.0
+offset_right = 15.0
+offset_bottom = 65.0

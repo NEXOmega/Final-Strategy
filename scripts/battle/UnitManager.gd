@@ -6,6 +6,10 @@ extends Node
 @export var unit_scene: PackedScene
 @export var surface_manager: SurfaceManager
 
+@export var knight_definition: UnitDefinition
+@export var battle_mage_definition: UnitDefinition
+@export var goblin_definition: UnitDefinition
+
 var units: Array[Unit] = []
 
 func _ready() -> void:
@@ -13,9 +17,29 @@ func _ready() -> void:
 	call_deferred("spawn_test_units")
 
 func spawn_test_units() -> void:
-	spawn_unit("Knight", 0, Vector2i(4, 28))
-	spawn_unit("Knight", 0, Vector2i(4, 29))
+	spawn_unit_from_definition(knight_definition, 0, Vector2i(4, 28))
+	spawn_unit_from_definition(battle_mage_definition, 0, Vector2i(5, 31))
+	spawn_unit_from_definition(goblin_definition, 1, Vector2i(6, 30))
 
+func spawn_unit_from_definition(
+	definition: UnitDefinition,
+	team_id: int,
+	grid_position: Vector2i
+) -> Unit:
+	if definition == null:
+		push_error("UnitManager: definition null.")
+		return null
+
+	var unit := spawn_unit(definition.display_name, team_id, grid_position)
+
+	if unit == null:
+		return null
+
+	unit.apply_definition(definition)
+	unit.team_id = team_id
+
+	return unit
+	
 func spawn_unit(
 	unit_name: String,
 	team_id: int,
@@ -60,6 +84,7 @@ func spawn_unit(
 	print("Unité créée : ", unit.unit_name, " cellule=", grid_position, " hauteur=", tile.height)
 
 	return unit
+	
 
 func reset_all_units_movement_points() -> void:
 	for unit: Unit in units:
@@ -79,3 +104,47 @@ func get_unit_at_cell(cell: Vector2i) -> Unit:
 
 func get_unit_z_index(cell: Vector2i, tile_height: int) -> int:
 	return grid_manager.get_render_z_index(cell, tile_height, 50)
+
+func get_alive_units() -> Array[Unit]:
+	var result: Array[Unit] = []
+
+	for unit: Unit in units:
+		if unit == null:
+			continue
+
+		if unit.is_dead():
+			continue
+
+		result.append(unit)
+
+	return result
+
+func get_units_by_team(team_id: int) -> Array[Unit]:
+	var result: Array[Unit] = []
+
+	for unit: Unit in units:
+		if unit == null:
+			continue
+
+		if unit.is_dead():
+			continue
+
+		if unit.team_id == team_id:
+			result.append(unit)
+
+	return result
+
+func remove_dead_units() -> void:
+	for unit: Unit in units.duplicate():
+		if unit == null:
+			continue
+
+		if not unit.is_dead():
+			continue
+
+		var tile := grid_manager.get_tile(unit.grid_position)
+		if tile != null and tile.occupied_by == unit:
+			tile.occupied_by = null
+
+		units.erase(unit)
+		unit.queue_free()

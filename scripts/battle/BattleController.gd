@@ -12,9 +12,20 @@ var selected_unit: Unit = null
 var reachable_cells: Array[Vector2i] = []
 var current_movement_result: PathfindingResult = null
 
+const BASIC_ATTACK_DAMAGE := 25
+const BASIC_ATTACK_RANGE := 1
+
+@export var ability_resolver: AbilityResolver
+
+@export var turn_label: Label
+
+
 func _ready() -> void:
-	if debug_logs:
-		print("READY BattleController")
+	print("READY BattleController")
+
+	if turn_manager != null:
+		turn_manager.active_unit_changed.connect(_on_active_unit_changed)
+		turn_manager.battle_ended.connect(_on_battle_ended)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("end_turn"):
@@ -50,6 +61,10 @@ func handle_left_click() -> void:
 		print("Case cliquée=", cell, " hauteur=", tile.height, " surface=", tile.surface_type)
 
 	if unit != null:
+		if selected_unit != null and selected_unit.is_enemy_of(unit):
+			try_use_default_ability_on(unit)
+			return
+
 		select_unit(unit)
 		return
 
@@ -84,7 +99,21 @@ func select_unit(unit: Unit) -> void:
 		return
 
 	selected_unit = unit
-	print("Unité sélectionnée : ", unit.unit_name, " PM=", unit.current_mp, "/", unit.max_mp)
+
+	print(
+		"Unité sélectionnée : ",
+		unit.unit_name,
+		" équipe=",
+		unit.team_id,
+		" PM=",
+		unit.current_mp,
+		"/",
+		unit.max_mp,
+		" Actions=",
+		unit.current_actions,
+		"/",
+		unit.max_actions
+	)
 
 	if pathfinding_manager == null:
 		push_error("BattleController: pathfinding_manager n'est pas assigné.")
@@ -144,6 +173,7 @@ func move_selected_unit_to(target_cell: Vector2i) -> void:
 
 	selected_unit.current_mp -= movement_cost
 	selected_unit.mark_moved()
+	update_turn_ui()
 
 	print("Unité déplacée vers : ", target_cell)
 	print("PM restants : ", selected_unit.current_mp, "/", selected_unit.max_mp)
@@ -174,3 +204,154 @@ func end_turn() -> void:
 		return
 
 	turn_manager.end_active_unit_turn()
+
+func try_attack_unit(attacker: Unit, target: Unit) -> void:
+	if attacker == null or target == null:
+		return
+
+	if turn_manager != null and not turn_manager.is_unit_active(attacker):
+		print("Attaque refusée : ce n'est pas le tour de ", attacker.unit_name)
+		return
+
+	if not attacker.can_act():
+		print(attacker.unit_name, " n'a plus d'action.")
+		return
+
+	if not attacker.is_enemy_of(target):
+		print("Cible invalide : même équipe.")
+		return
+
+	if not is_target_in_attack_range(attacker, target, BASIC_ATTACK_RANGE):
+		print("Cible hors de portée.")
+		return
+
+	perform_basic_attack(attacker, target)
+	
+func perform_basic_attack(attacker: Unit, target: Unit) -> void:
+	print(attacker.unit_name, " attaque ", target.unit_name)
+
+	target.take_damage(BASIC_ATTACK_DAMAGE)
+	attacker.consume_action()
+
+	if unit_manager != null:
+		unit_manager.remove_dead_units()
+
+	clear_selection()
+
+	if turn_manager != null:
+		turn_manager.end_active_unit_turn()
+	update_turn_ui()
+
+func is_target_in_attack_range(attacker: Unit, target: Unit, attack_range: int) -> bool:
+	if attack_range <= 0:
+		return false
+
+	if attack_range == 1:
+		var neighbors := grid_manager.get_neighbor_cells(attacker.grid_position)
+		return neighbors.has(target.grid_position)
+
+	return get_cell_distance(attacker.grid_position, target.grid_position) <= attack_range
+
+func get_cell_distance(from_cell: Vector2i, to_cell: Vector2i) -> int:
+	if from_cell == to_cell:
+		return 0
+
+	var visited: Dictionary = {}
+	var queue: Array[Dictionary] = []
+
+	queue.append({
+		"cell": from_cell,
+		"distance": 0
+	})
+
+	visited[from_cell] = true
+
+	while not queue.is_empty():
+		var current: Dictionary = queue.pop_front()
+		var current_cell: Vector2i = current["cell"] as Vector2i
+		var current_distance: int = int(current["distance"])
+
+		if current_cell == to_cell:
+			return current_distance
+
+		for neighbor: Vector2i in grid_manager.get_neighbor_cells(current_cell):
+			if visited.has(neighbor):
+				continue
+
+			visited[neighbor] = true
+
+			queue.append({
+				"cell": neighbor,
+				"distance": current_distance + 1
+			})
+
+	return 999999
+
+func _on_active_unit_changed(unit: Unit) -> void:
+	clear_selection()
+
+	if surface_manager != null and unit != null:
+		surface_manager.show_active_unit_highlight(unit.grid_position)
+
+	print("Nouvelle unité active : ", unit.unit_name)
+
+	update_turn_ui()
+
+func _on_battle_ended(winning_team_id: int) -> void:
+	clear_selection()
+
+	if surface_manager != null:
+		surface_manager.clear_active_unit_highlight()
+
+	if turn_label != null:
+		turn_label.text = "Victoire de l'équipe " + str(winning_team_id)
+
+	print("Victoire de l'équipe ", winning_team_id)
+
+func update_turn_ui() -> void:
+	if turn_label == null:
+		return
+
+	if turn_manager == null:
+		turn_label.text = "No TurnManager"
+		return
+
+	var unit := turn_manager.get_active_unit()
+
+	if unit == null:
+		turn_label.text = "Aucune unité active"
+		return
+
+	turn_label.text = (
+		"Round " + str(turn_manager.round_number)
+		+ " | "
+		+ unit.unit_name
+		+ " | Team " + str(unit.team_id)
+		+ " | HP " + str(unit.hp) + "/" + str(unit.max_hp)
+		+ " | PM " + str(unit.current_mp) + "/" + str(unit.max_mp)
+		+ " | Actions " + str(unit.current_actions) + "/" + str(unit.max_actions)
+	)
+
+func try_use_default_ability_on(target: Unit) -> void:
+	if selected_unit == null:
+		return
+
+	if selected_unit.abilities.is_empty():
+		print(selected_unit.unit_name, " n'a aucune compétence.")
+		return
+
+	var ability := selected_unit.abilities[0]
+
+	if ability_resolver == null:
+		push_error("BattleController: ability_resolver non assigné.")
+		return
+
+	var success := ability_resolver.use_ability(
+		selected_unit,
+		ability,
+		target.grid_position
+	)
+
+	if success:
+		clear_selection()
+		update_turn_ui()

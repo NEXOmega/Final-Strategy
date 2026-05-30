@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AbilityDefinition" format=3 uid="uid://ds1o5p46j4dnu"]
+
+[ext_resource type="Script" uid="uid://btmfmedu8eixb" path="res://scripts/battle/ability/AbilityDefinition.gd" id="1_ab4jl"]
+
+[resource]
+script = ExtResource("1_ab4jl")
+id = "attack"
+display_name = "Attack"
+metadata/_custom_type_script = "uid://btmfmedu8eixb"
