@@ -5,6 +5,7 @@ const CUSTOM_HEIGHT := "height"
 const CUSTOM_SURFACE_TYPE := "surface_type"
 const CUSTOM_ALIAS_OFFSET_X := "alias_offset_x"
 const CUSTOM_ALIAS_OFFSET_Y := "alias_offset_y"
+const CUSTOM_MOVEMENT_COST := "movement_cost"
 
 @export var logic_layer: TileMapLayer
 @export var hide_logic_layer_on_start: bool = true
@@ -56,8 +57,15 @@ func _register_logic_cell(cell: Vector2i) -> void:
 
 	var tile_height := TileCustomDataReader.get_int(tile_data_source, CUSTOM_HEIGHT, 0)
 	var surface_type := TileCustomDataReader.get_string(tile_data_source, CUSTOM_SURFACE_TYPE, SurfaceShapeFactory.FLAT)
+	var movement_cost := TileCustomDataReader.get_int(tile_data_source, CUSTOM_MOVEMENT_COST, 1)
 
-	var tile_data := BattleTileData.new(cell, tile_height, surface_type, true)
+	var tile_data := BattleTileData.new(
+		cell,
+		tile_height,
+		surface_type,
+		movement_cost,
+		true
+	)
 
 	tiles[cell] = tile_data
 	canonical_footprints[cell] = [cell]

@@ -14,6 +14,7 @@ func _ready() -> void:
 
 func spawn_test_units() -> void:
 	spawn_unit("Knight", 0, Vector2i(4, 28))
+	spawn_unit("Knight", 0, Vector2i(4, 29))
 
 func spawn_unit(
 	unit_name: String,
@@ -59,6 +60,14 @@ func spawn_unit(
 	print("Unité créée : ", unit.unit_name, " cellule=", grid_position, " hauteur=", tile.height)
 
 	return unit
+
+func reset_all_units_movement_points() -> void:
+	for unit: Unit in units:
+		if unit == null:
+			continue
+
+		unit.reset_movement_points()
+		print(unit.unit_name, " PM restaurés : ", unit.current_mp, "/", unit.max_mp)
 
 func get_unit_at_cell(cell: Vector2i) -> Unit:
 	var tile := grid_manager.get_tile(cell)
