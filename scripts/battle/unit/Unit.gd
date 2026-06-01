@@ -193,3 +193,109 @@ func getBaseStat(stat_type: BattleStats.StatType) -> int:
 
 func setBaseStat(stat_type: BattleStats.StatType, value: int) -> void:
 	set_base_stat(stat_type, value)
+
+func process_attack(attack: BattleAttack) -> void:
+	if attack == null:
+		return
+
+	if attack.source_unit == null:
+		return
+
+	if not can_receive_attack(attack):
+		return
+
+	match attack.damage_type:
+		AbilityEnums.DamageType.PHYSICAL:
+			_process_physical_attack(attack)
+
+		AbilityEnums.DamageType.MAGICAL:
+			_process_magical_attack(attack)
+
+		AbilityEnums.DamageType.TRUE_DAMAGE:
+			_process_true_damage_attack(attack)
+
+		AbilityEnums.DamageType.HEAL:
+			_process_heal_attack(attack)
+
+		_:
+			push_warning("Unit: damage_type non géré.")
+			
+func can_receive_attack(attack: BattleAttack) -> bool:
+	if attack == null:
+		return false
+
+	var source := attack.source_unit
+
+	if source == null:
+		return false
+
+	if source == self:
+		return attack.hits_self
+
+	if source.is_enemy_of(self):
+		return attack.hits_enemies
+
+	return attack.hits_allies
+
+func _process_physical_attack(attack: BattleAttack) -> void:
+	var source := attack.source_unit
+
+	var raw_damage: int = source.get_stat(BattleStats.StatType.ATTACK) + attack.power
+	var final_damage: int = max(1, raw_damage - get_stat(BattleStats.StatType.DEFENSE))
+
+	print(
+		source.unit_name,
+		" touche ",
+		unit_name,
+		" avec ",
+		attack.ability.display_name,
+		" dégâts=",
+		final_damage
+	)
+
+	take_damage(final_damage)
+
+func _process_magical_attack(attack: BattleAttack) -> void:
+	var source := attack.source_unit
+
+	var raw_damage: int = source.get_stat(BattleStats.StatType.MAGIC_ATTACK) + attack.power
+	var final_damage: int = max(1, raw_damage - get_stat(BattleStats.StatType.MAGIC_DEFENSE))
+
+	print(
+		source.unit_name,
+		" lance ",
+		attack.ability.display_name,
+		" sur ",
+		unit_name,
+		" dégâts=",
+		final_damage
+	)
+
+	take_damage(final_damage)
+
+func _process_true_damage_attack(attack: BattleAttack) -> void:
+	var final_damage: int = max(1, attack.power)
+
+	print(
+		unit_name,
+		" subit ",
+		final_damage,
+		" dégâts purs."
+	)
+
+	take_damage(final_damage)
+
+func _process_heal_attack(attack: BattleAttack) -> void:
+	var source := attack.source_unit
+
+	var heal_amount: int = source.get_stat(BattleStats.StatType.MAGIC_ATTACK) + attack.power
+
+	print(
+		source.unit_name,
+		" soigne ",
+		unit_name,
+		" de ",
+		heal_amount
+	)
+
+	heal(heal_amount)

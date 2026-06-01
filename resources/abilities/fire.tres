@@ -6,9 +6,12 @@
 script = ExtResource("1_52ic4")
 id = "fire"
 display_name = "Fire"
+target_type = 5
+shape = 2
 damage_type = 1
 element = 1
 power = 15
 mp_cost = 5
 max_range = 3
+area_radius = 2
 metadata/_custom_type_script = "uid://btmfmedu8eixb"

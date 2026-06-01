@@ -20,6 +20,9 @@ var selected_ability: AbilityDefinition = null
 @export var action_menu: BattleActionMenu
 @export var ability_menu: AbilityMenu
 
+var ability_targetable_cells: Array[Vector2i] = []
+var last_ability_preview_cell: Vector2i = Vector2i(999999, 999999)
+
 enum BattleInputMode {
 	NONE,
 	ACTION_MENU,
@@ -46,6 +49,11 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("end_turn"):
 		end_turn()
+		return
+
+	if event is InputEventMouseMotion:
+		if input_mode == BattleInputMode.ABILITY_TARGETING:
+			update_ability_preview_under_mouse()
 		return
 
 	if event is InputEventMouseButton:
@@ -262,6 +270,8 @@ func clear_selection(close_menus: bool = true) -> void:
 	reachable_cells.clear()
 	current_movement_result = null
 	input_mode = BattleInputMode.NONE
+	ability_targetable_cells.clear()
+	last_ability_preview_cell = Vector2i(999999, 999999)
 
 	if surface_manager != null:
 		surface_manager.clear_highlights()
@@ -321,9 +331,19 @@ func _on_ability_selected(ability: AbilityDefinition) -> void:
 
 	selected_ability = ability
 	input_mode = BattleInputMode.ABILITY_TARGETING
+	last_ability_preview_cell = Vector2i(999999, 999999)
 
 	if ability_menu != null:
 		ability_menu.close()
+
+	if ability_resolver == null:
+		push_error("BattleController: ability_resolver non assigné.")
+		return
+
+	ability_targetable_cells = ability_resolver.get_targetable_cells(
+		selected_unit,
+		selected_ability
+	)
 
 	print(
 		"Compétence sélectionnée : ",
@@ -331,10 +351,48 @@ func _on_ability_selected(ability: AbilityDefinition) -> void:
 		" portée=",
 		ability.min_range,
 		"-",
-		ability.max_range
+		ability.max_range,
+		" cibles possibles=",
+		ability_targetable_cells.size()
 	)
 
-	# On ajoutera le highlight de portée juste après.
+	if surface_manager != null:
+		surface_manager.show_ability_target_cells(ability_targetable_cells)
+
+	update_ability_preview_under_mouse()
+
+func update_ability_preview_under_mouse() -> void:
+	if selected_unit == null or selected_ability == null:
+		return
+
+	if surface_manager == null or ability_resolver == null:
+		return
+
+	var surface := _get_surface_under_mouse()
+
+	if surface == null:
+		surface_manager.clear_ability_area_highlights()
+		last_ability_preview_cell = Vector2i(999999, 999999)
+		return
+
+	var cell: Vector2i = surface.grid_position
+
+	if cell == last_ability_preview_cell:
+		return
+
+	last_ability_preview_cell = cell
+
+	if not ability_resolver.can_use_ability(selected_unit, selected_ability, cell):
+		surface_manager.clear_ability_area_highlights()
+		return
+
+	var affected_cells := ability_resolver.get_affected_cells(
+		selected_unit,
+		selected_ability,
+		cell
+	)
+
+	surface_manager.show_ability_area_cells(affected_cells)
 
 func _clear_selection_with_log(message: String) -> void:
 	if debug_logs:

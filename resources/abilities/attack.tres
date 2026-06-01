@@ -6,4 +6,5 @@
 script = ExtResource("1_ab4jl")
 id = "attack"
 display_name = "Attack"
+target_type = 5
 metadata/_custom_type_script = "uid://btmfmedu8eixb"

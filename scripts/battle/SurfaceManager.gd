@@ -15,6 +15,8 @@ var active_unit_highlight: Polygon2D = null
 
 var surfaces: Dictionary = {}
 var highlight_nodes: Array[Polygon2D] = []
+var ability_range_nodes: Array[Polygon2D] = []
+var ability_area_nodes: Array[Polygon2D] = []
 
 func _ready() -> void:
 	call_deferred("build_surfaces")
@@ -133,8 +135,12 @@ func get_surface_under_global_position(global_pos: Vector2) -> TileSurface:
 			best_z = z
 			best_surface = surface
 
-	if debug_logs and best_surface != null:
-		print("Surface trouvée=", best_surface.grid_position)
+	if best_surface != null:
+		if debug_logs:
+			print("Surface trouvée : ", best_surface.grid_position)
+	else:
+		if debug_logs:
+			print("Aucune surface pour global_pos=", global_pos)
 
 	return best_surface
 
@@ -169,6 +175,8 @@ func clear_highlights() -> void:
 			node.queue_free()
 
 	highlight_nodes.clear()
+
+	clear_ability_highlights()
 
 func get_unit_world_position(cell: Vector2i) -> Vector2:
 	var tile := grid_manager.get_tile(cell)
@@ -208,3 +216,70 @@ func clear_active_unit_highlight() -> void:
 		active_unit_highlight.queue_free()
 
 	active_unit_highlight = null
+
+func clear_ability_range_highlights() -> void:
+	_clear_polygon_nodes(ability_range_nodes)
+
+
+func clear_ability_area_highlights() -> void:
+	_clear_polygon_nodes(ability_area_nodes)
+
+
+func clear_ability_highlights() -> void:
+	clear_ability_range_highlights()
+	clear_ability_area_highlights()
+
+
+func show_ability_target_cells(cells: Array[Vector2i]) -> void:
+	clear_ability_highlights()
+
+	for cell: Vector2i in cells:
+		_create_cell_highlight(
+			cell,
+			Color(1.0, 0.75, 0.1, 0.35),
+			4096,
+			ability_range_nodes
+		)
+
+
+func show_ability_area_cells(cells: Array[Vector2i]) -> void:
+	clear_ability_area_highlights()
+
+	for cell: Vector2i in cells:
+		_create_cell_highlight(
+			cell,
+			Color(1.0, 0.15, 0.1, 0.55),
+			4097,
+			ability_area_nodes
+		)
+
+
+func _create_cell_highlight(
+	cell: Vector2i,
+	color: Color,
+	z: int,
+	target_array: Array[Polygon2D]
+) -> void:
+	var surface := get_surface_at_cell(cell)
+
+	if surface == null:
+		return
+
+	var polygon := Polygon2D.new()
+	surfaces_root.add_child(polygon)
+
+	polygon.polygon = surface.surface_polygon
+	polygon.color = color
+	polygon.global_position = surface.global_position
+	polygon.z_as_relative = false
+	polygon.z_index = z
+
+	target_array.append(polygon)
+
+
+func _clear_polygon_nodes(nodes: Array[Polygon2D]) -> void:
+	for node: Polygon2D in nodes:
+		if is_instance_valid(node):
+			node.queue_free()
+
+	nodes.clear()
